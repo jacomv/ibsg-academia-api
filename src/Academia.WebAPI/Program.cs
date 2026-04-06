@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Academia.Application;
 using Academia.Infrastructure;
@@ -28,7 +29,13 @@ try
         .ReadFrom.Configuration(ctx.Configuration)
         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"));
 
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddJsonOptions(opts =>
+        {
+            // Serialize enums as strings (e.g. "Published" instead of 2)
+            opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        });
     builder.Services.AddOpenApi();
     builder.Services.AddHttpContextAccessor();
 
