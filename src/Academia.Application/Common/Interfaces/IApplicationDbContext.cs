@@ -24,6 +24,8 @@ public interface IApplicationDbContext
     DbSet<Comment> Comments { get; }
     DbSet<Group> Groups { get; }
     DbSet<GroupMember> GroupMembers { get; }
+    DbSet<PointTransaction> PointTransactions { get; }
+    DbSet<UserStreak> UserStreaks { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

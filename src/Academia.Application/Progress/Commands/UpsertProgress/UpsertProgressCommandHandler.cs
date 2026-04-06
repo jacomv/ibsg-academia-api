@@ -68,9 +68,24 @@ public class UpsertProgressCommandHandler : IRequestHandler<UpsertProgressComman
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Check if the entire course is now complete
+        // Award points + update streak for lesson completion
         if (justCompleted)
         {
+            var pts = new Domain.Entities.PointTransaction(
+                _currentUser.Id, 10, $"Lesson completed: {lesson.Title}", lesson.Id.ToString());
+            await _context.PointTransactions.AddAsync(pts, cancellationToken);
+
+            var streak = await _context.UserStreaks
+                .FirstOrDefaultAsync(s => s.UserId == _currentUser.Id, cancellationToken);
+            if (streak is null)
+            {
+                streak = new Domain.Entities.UserStreak(_currentUser.Id);
+                await _context.UserStreaks.AddAsync(streak, cancellationToken);
+            }
+            streak.RecordActivity();
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // Check if the entire course is now complete
             await CheckCourseCompletionAsync(
                 lesson.Chapter.CourseId,
                 lesson.Chapter.Course.Title,

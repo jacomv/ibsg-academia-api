@@ -28,6 +28,8 @@ public class AcademiaDbContext : DbContext, IApplicationDbContext
     public DbSet<Comment> Comments => Set<Comment>();
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
+    public DbSet<PointTransaction> PointTransactions => Set<PointTransaction>();
+    public DbSet<UserStreak> UserStreaks => Set<UserStreak>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
