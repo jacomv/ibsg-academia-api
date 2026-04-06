@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Academia.Application/Academia.Application.csproj" />
+    <Project Path="src/Academia.Domain/Academia.Domain.csproj" />
+    <Project Path="src/Academia.Infrastructure/Academia.Infrastructure.csproj" />
+    <Project Path="src/Academia.WebAPI/Academia.WebAPI.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Academia.Application.Tests/Academia.Application.Tests.csproj" />
+    <Project Path="tests/Academia.Domain.Tests/Academia.Domain.Tests.csproj" />
+    <Project Path="tests/Academia.Integration.Tests/Academia.Integration.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,35 @@
+## .NET build outputs
+bin/
+obj/
+*.user
+.vs/
+.vscode/settings.json
+.idea/
+
+## Secrets & local config
+appsettings.Production.json
+appsettings.Staging.json
+*.env
+.env
+secrets.json
+
+## EF Core migrations temp
+*.Designer.cs.bak
+
+## Publish & artifacts
+publish/
+artifacts/
+out/
+
+## Test results
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Uploads (runtime generated)
+src/Academia.WebAPI/wwwroot/uploads/
