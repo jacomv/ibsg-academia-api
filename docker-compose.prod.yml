@@ -1,0 +1,60 @@
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ibsg-academia-api:latest
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__DefaultConnection: ${DATABASE_URL}
+      JwtSettings__SecretKey: ${JWT_SECRET_KEY}
+      JwtSettings__Issuer: ibsg-academia-api
+      JwtSettings__Audience: ibsg-academia-frontend
+      EmailSettings__SmtpHost: ${SMTP_HOST}
+      EmailSettings__SmtpPort: ${SMTP_PORT:-587}
+      EmailSettings__Username: ${SMTP_USERNAME}
+      EmailSettings__Password: ${SMTP_PASSWORD}
+      EmailSettings__FromEmail: ${SMTP_FROM_EMAIL}
+      EmailSettings__FromName: ${SMTP_FROM_NAME:-IBSG Academia}
+      AppSettings__FrontendUrl: ${FRONTEND_URL}
+    volumes:
+      - uploads:/app/wwwroot/uploads
+    networks:
+      - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.academia-api.rule=Host(`${API_DOMAIN}`)"
+      - "traefik.http.routers.academia-api.entrypoints=websecure"
+      - "traefik.http.routers.academia-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.academia-api.loadbalancer.server.port=8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-academia_db}
+      POSTGRES_USER: ${POSTGRES_USER:-academia_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dokploy-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-academia_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  uploads:
+
+networks:
+  dokploy-network:
+    external: true

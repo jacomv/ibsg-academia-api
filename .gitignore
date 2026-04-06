@@ -9,8 +9,9 @@ obj/
 ## Secrets & local config
 appsettings.Production.json
 appsettings.Staging.json
-*.env
 .env
+.env.*
+!.env.example
 secrets.json
 
 ## EF Core migrations temp

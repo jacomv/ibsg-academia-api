@@ -1,0 +1,14 @@
+**/.git
+**/.vs
+**/.vscode
+**/.idea
+**/bin
+**/obj
+**/TestResults
+**/*.user
+**/wwwroot/uploads
+docker-compose*.yml
+.env
+.env.*
+!.env.example
+README.md
