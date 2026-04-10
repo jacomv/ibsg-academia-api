@@ -34,6 +34,10 @@ public class AcademiaDbContext : DbContext, IApplicationDbContext
     public DbSet<LessonVersion> LessonVersions => Set<LessonVersion>();
     public DbSet<EditorialReview> EditorialReviews => Set<EditorialReview>();
     public DbSet<ReorderAudit> ReorderAudits => Set<ReorderAudit>();
+    public DbSet<StudentNote> StudentNotes => Set<StudentNote>();
+    public DbSet<Bookmark> Bookmarks => Set<Bookmark>();
+    public DbSet<LessonAttachment> LessonAttachments => Set<LessonAttachment>();
+    public DbSet<CoursePrerequisite> CoursePrerequisites => Set<CoursePrerequisite>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

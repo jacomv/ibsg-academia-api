@@ -34,6 +34,37 @@ public class SelfEnrollCommandHandler : IRequestHandler<SelfEnrollCommand, Enrol
                 ["courseId"] = ["This course is not available for enrollment."]
             });
 
+        // Check prerequisites
+        var prerequisites = await _context.CoursePrerequisites
+            .Where(p => p.CourseId == request.CourseId)
+            .Include(p => p.PrerequisiteCourse)
+            .ToListAsync(cancellationToken);
+
+        foreach (var prereq in prerequisites)
+        {
+            var totalLessons = await _context.Lessons
+                .CountAsync(l =>
+                    l.Chapter.CourseId == prereq.PrerequisiteCourseId &&
+                    l.Type != LessonType.Section, cancellationToken);
+
+            if (totalLessons == 0) continue;
+
+            var completedLessons = await _context.UserProgress
+                .CountAsync(p =>
+                    p.UserId == _currentUser.Id &&
+                    p.Status == ProgressStatus.Completed &&
+                    _context.Lessons.Any(l =>
+                        l.Id == p.LessonId &&
+                        l.Type != LessonType.Section &&
+                        l.Chapter.CourseId == prereq.PrerequisiteCourseId), cancellationToken);
+
+            if (completedLessons < totalLessons)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["prerequisites"] = [$"You must complete \"{prereq.PrerequisiteCourse.Title}\" before enrolling in this course."]
+                });
+        }
+
         // Prevent duplicate active enrollments
         var existingActive = await _context.Enrollments
             .AnyAsync(e =>

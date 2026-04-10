@@ -30,6 +30,10 @@ public interface IApplicationDbContext
     DbSet<LessonVersion> LessonVersions { get; }
     DbSet<EditorialReview> EditorialReviews { get; }
     DbSet<ReorderAudit> ReorderAudits { get; }
+    DbSet<StudentNote> StudentNotes { get; }
+    DbSet<Bookmark> Bookmarks { get; }
+    DbSet<LessonAttachment> LessonAttachments { get; }
+    DbSet<CoursePrerequisite> CoursePrerequisites { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

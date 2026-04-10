@@ -58,7 +58,10 @@ public class GetCourseByIdQueryHandler : IRequestHandler<GetCourseByIdQuery, Cou
                     IsLockedByDate: l.IsLockedByDate
                 )).ToList(),
                 Exam: ch.Exam is null ? null
-                    : new ExamSummaryDto(ch.Exam.Id, ch.Exam.Title, ch.Exam.PassingScore, ch.Exam.MaxAttempts)
+                    : new ExamSummaryDto(ch.Exam.Id, ch.Exam.Title, ch.Exam.PassingScore, ch.Exam.MaxAttempts),
+                EstimatedDurationMinutes: ch.Lessons
+                    .Where(l => l.DurationMinutes.HasValue)
+                    .Sum(l => l.DurationMinutes!.Value)
             )).ToList(),
             CreatedAt: course.CreatedAt
         );

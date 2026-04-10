@@ -44,6 +44,17 @@ public class GetLessonByIdQueryHandler : IRequestHandler<GetLessonByIdQuery, Les
         var previousId = currentIndex > 0 ? playable[currentIndex - 1].Id : (Guid?)null;
         var nextId = currentIndex < playable.Count - 1 ? playable[currentIndex + 1].Id : (Guid?)null;
 
+        // Load attachments
+        var attachments = await _context.LessonAttachments
+            .Where(a => a.LessonId == lesson.Id)
+            .OrderBy(a => a.Order)
+            .Select(a => new AttachmentDto(a.Id, a.FileName, a.FileUrl, a.FileType, a.FileSize, a.Order))
+            .ToListAsync(cancellationToken);
+
+        // Check bookmark status
+        var isBookmarked = await _context.Bookmarks
+            .AnyAsync(b => b.UserId == _currentUser.Id && b.LessonId == lesson.Id, cancellationToken);
+
         return new LessonContentDto(
             Id: lesson.Id,
             Title: lesson.Title,
@@ -57,7 +68,9 @@ public class GetLessonByIdQueryHandler : IRequestHandler<GetLessonByIdQuery, Les
             IsLocked: isLocked,
             LockReason: lockReason,
             PreviousLessonId: previousId,
-            NextLessonId: nextId
+            NextLessonId: nextId,
+            Attachments: attachments,
+            IsBookmarked: isBookmarked
         );
     }
 

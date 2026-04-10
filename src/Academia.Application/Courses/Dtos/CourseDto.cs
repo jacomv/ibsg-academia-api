@@ -39,7 +39,8 @@ public record ChapterDto(
     DateTime? AvailableFrom,
     bool IsLocked,
     List<LessonSummaryDto> Lessons,
-    ExamSummaryDto? Exam
+    ExamSummaryDto? Exam,
+    int? EstimatedDurationMinutes
 );
 
 public record LessonSummaryDto(
@@ -65,7 +66,18 @@ public record LessonContentDto(
     bool IsLocked,
     string? LockReason,
     Guid? PreviousLessonId,
-    Guid? NextLessonId
+    Guid? NextLessonId,
+    List<AttachmentDto>? Attachments,
+    bool IsBookmarked
+);
+
+public record AttachmentDto(
+    Guid Id,
+    string FileName,
+    string FileUrl,
+    string FileType,
+    long FileSize,
+    int Order
 );
 
 public record TeacherSummaryDto(Guid Id, string FullName, string? Avatar);
