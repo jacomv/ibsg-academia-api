@@ -2,6 +2,7 @@ using Academia.Application.Lessons.Commands.CreateLesson;
 using Academia.Application.Lessons.Commands.DeleteLesson;
 using Academia.Application.Lessons.Commands.ReorderLessons;
 using Academia.Application.Lessons.Commands.UpdateLesson;
+using Academia.Application.Lessons.Queries.GetAdminLessonById;
 using Academia.Application.Lessons.Queries.GetLessonVersions;
 using Academia.Application.Lessons.Queries.ValidateLesson;
 using Academia.Domain.Enums;
@@ -19,6 +20,13 @@ public class AdminLessonsController : ControllerBase
     private readonly IMediator _mediator;
 
     public AdminLessonsController(IMediator mediator) => _mediator = mediator;
+
+    [HttpGet("lessons/{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetAdminLessonByIdQuery(id), ct);
+        return Ok(result);
+    }
 
     [HttpPost("chapters/{chapterId:guid}/lessons")]
     public async Task<IActionResult> Create(
