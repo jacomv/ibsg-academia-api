@@ -1,9 +1,18 @@
 using Academia.Application.Common.Interfaces;
+using Academia.Application.Courses.Commands.ApproveCourse;
 using Academia.Application.Courses.Commands.ArchiveCourse;
 using Academia.Application.Courses.Commands.CreateCourse;
+using Academia.Application.Courses.Commands.PublishCourse;
+using Academia.Application.Courses.Commands.RejectCourse;
+using Academia.Application.Courses.Commands.RollbackCourse;
+using Academia.Application.Courses.Commands.ScheduleCourse;
+using Academia.Application.Courses.Commands.SubmitForReview;
 using Academia.Application.Courses.Commands.UpdateCourse;
+using Academia.Application.Courses.Commands.ValidateCourse;
 using Academia.Application.Courses.Queries.GetCourseById;
 using Academia.Application.Courses.Queries.GetCourses;
+using Academia.Application.Courses.Queries.GetCourseVersions;
+using Academia.Application.Courses.Queries.GetEditorialReviews;
 using Academia.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -80,4 +89,78 @@ public class AdminCoursesController : ControllerBase
 
         return Ok(new { url });
     }
+
+    // --- Editorial Workflow ---
+
+    [HttpPost("{id:guid}/submit-review")]
+    public async Task<IActionResult> SubmitForReview(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new SubmitForReviewCommand(id), ct);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/approve")]
+    public async Task<IActionResult> Approve(
+        Guid id, [FromBody] ApproveRequest? request, CancellationToken ct)
+    {
+        await _mediator.Send(new ApproveCourseCommand(id, request?.Comment), ct);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/reject")]
+    public async Task<IActionResult> Reject(
+        Guid id, [FromBody] RejectRequest request, CancellationToken ct)
+    {
+        await _mediator.Send(new RejectCourseCommand(id, request.Comment), ct);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/publish")]
+    public async Task<IActionResult> Publish(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new PublishCourseCommand(id), ct);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/schedule")]
+    public async Task<IActionResult> Schedule(
+        Guid id, [FromBody] ScheduleRequest request, CancellationToken ct)
+    {
+        await _mediator.Send(new ScheduleCourseCommand(id, request.PublishAt, request.UnpublishAt), ct);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/validate")]
+    public async Task<IActionResult> Validate(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ValidateCourseCommand(id), ct);
+        return Ok(result);
+    }
+
+    // --- Versioning ---
+
+    [HttpGet("{id:guid}/versions")]
+    public async Task<IActionResult> GetVersions(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetCourseVersionsQuery(id), ct);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/rollback/{versionId:guid}")]
+    public async Task<IActionResult> Rollback(Guid id, Guid versionId, CancellationToken ct)
+    {
+        await _mediator.Send(new RollbackCourseCommand(id, versionId), ct);
+        return NoContent();
+    }
+
+    [HttpGet("{id:guid}/reviews")]
+    public async Task<IActionResult> GetReviews(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetEditorialReviewsQuery(id), ct);
+        return Ok(result);
+    }
 }
+
+public record ApproveRequest(string? Comment);
+public record RejectRequest(string Comment);
+public record ScheduleRequest(DateTime PublishAt, DateTime? UnpublishAt);

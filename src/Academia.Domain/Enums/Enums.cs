@@ -11,7 +11,15 @@ public enum CourseStatus
 {
     Draft = 1,
     Published = 2,
-    Archived = 3
+    Archived = 3,
+    InReview = 4,
+    Approved = 5
+}
+
+public enum EditorialDecision
+{
+    Approved = 1,
+    Rejected = 2
 }
 
 public enum AccessType
@@ -27,7 +35,8 @@ public enum LessonType
     Audio = 2,
     Text = 3,
     Pdf = 4,
-    Mixed = 5
+    Mixed = 5,
+    Section = 6
 }
 
 public enum ProgressStatus

@@ -38,6 +38,10 @@ public class UpsertProgressCommandHandler : IRequestHandler<UpsertProgressComman
         if (lesson is null)
             throw new NotFoundException("Lesson", request.LessonId);
 
+        // Sections are structural groupings — no progress tracking
+        if (lesson.Type == LessonType.Section)
+            return new UpsertProgressResult(request.LessonId, ProgressStatus.NotStarted, 0, false);
+
         var progress = await _context.UserProgress
             .FirstOrDefaultAsync(p =>
                 p.UserId == _currentUser.Id &&
@@ -102,19 +106,20 @@ public class UpsertProgressCommandHandler : IRequestHandler<UpsertProgressComman
     private async Task CheckCourseCompletionAsync(
         Guid courseId, string courseTitle, CancellationToken ct)
     {
-        // Get all lesson IDs in this course
+        // Get all lesson IDs in this course (exclude sections)
         var totalLessons = await _context.Lessons
-            .CountAsync(l => l.Chapter.CourseId == courseId, ct);
+            .CountAsync(l => l.Chapter.CourseId == courseId && l.Type != LessonType.Section, ct);
 
         if (totalLessons == 0) return;
 
-        // Count how many the current user has completed
+        // Count how many the current user has completed (exclude sections)
         var completedLessons = await _context.UserProgress
             .CountAsync(p =>
                 p.UserId == _currentUser.Id &&
                 p.Status == ProgressStatus.Completed &&
                 _context.Lessons.Any(l =>
                     l.Id == p.LessonId &&
+                    l.Type != LessonType.Section &&
                     l.Chapter.CourseId == courseId), ct);
 
         if (completedLessons >= totalLessons)

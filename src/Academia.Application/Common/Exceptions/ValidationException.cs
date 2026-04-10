@@ -9,4 +9,13 @@ public class ValidationException : Exception
     {
         Errors = errors;
     }
+
+    public ValidationException(IEnumerable<string> errors)
+        : base("One or more validation failures occurred.")
+    {
+        Errors = new Dictionary<string, string[]>
+        {
+            [""] = errors.ToArray()
+        };
+    }
 }

@@ -14,7 +14,7 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.HasKey(c => c.Id);
 
         builder.Property(c => c.Title).IsRequired().HasMaxLength(300);
-        builder.Property(c => c.Description).HasMaxLength(2000);
+        builder.Property(c => c.Description);
         builder.Property(c => c.Image).HasMaxLength(500);
         builder.Property(c => c.Status).HasConversion<string>().HasMaxLength(50);
         builder.Property(c => c.AccessType).HasConversion<string>().HasMaxLength(50);

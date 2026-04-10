@@ -1,5 +1,6 @@
 using Academia.Application.Common.Exceptions;
 using Academia.Application.Common.Interfaces;
+using Academia.Application.Lessons.Validators;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +19,12 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand>
 
         if (lesson is null)
             throw new NotFoundException("Lesson", request.Id);
+
+        var validation = LessonContentValidator.Validate(
+            request.Type, request.TextContent, request.VideoUrl,
+            request.AudioUrl, request.PdfFile);
+        if (!validation.IsValid)
+            throw new ValidationException(validation.Errors);
 
         lesson.Update(
             request.Title, request.Type, request.TextContent, request.VideoUrl,

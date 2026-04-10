@@ -32,7 +32,7 @@ public class GetCourseProgressQueryHandler : IRequestHandler<GetCourseProgressQu
             throw new NotFoundException("Course", request.CourseId);
 
         var lessonIds = course.Chapters
-            .SelectMany(ch => ch.Lessons.Select(l => l.Id))
+            .SelectMany(ch => ch.Lessons.Where(l => l.Type != LessonType.Section).Select(l => l.Id))
             .ToList();
 
         // Load all progress records for this user+course in one query
@@ -63,9 +63,10 @@ public class GetCourseProgressQueryHandler : IRequestHandler<GetCourseProgressQu
                     prog?.CompletedAt);
             }).ToList();
 
+            var playableLessons = ch.Lessons.Count(l => l.Type != LessonType.Section);
             return new ChapterProgressDto(
                 ch.Id, ch.Title, ch.Order,
-                ch.Lessons.Count,
+                playableLessons,
                 chLessons.Count(l => l.Status == ProgressStatus.Completed),
                 chLessons);
         }).ToList();

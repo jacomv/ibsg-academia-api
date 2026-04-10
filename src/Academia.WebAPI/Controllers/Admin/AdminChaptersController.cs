@@ -1,5 +1,6 @@
 using Academia.Application.Chapters.Commands.CreateChapter;
 using Academia.Application.Chapters.Commands.DeleteChapter;
+using Academia.Application.Chapters.Commands.ReorderChapters;
 using Academia.Application.Chapters.Commands.UpdateChapter;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -40,7 +41,17 @@ public class AdminChaptersController : ControllerBase
         await _mediator.Send(new DeleteChapterCommand(id), ct);
         return NoContent();
     }
+
+    [HttpPost("courses/{courseId:guid}/chapters/reorder")]
+    public async Task<IActionResult> Reorder(
+        Guid courseId, [FromBody] ReorderRequest request, CancellationToken ct)
+    {
+        await _mediator.Send(new ReorderChaptersCommand(courseId, request.OrderedIds), ct);
+        return NoContent();
+    }
 }
+
+public record ReorderRequest(List<Guid> OrderedIds);
 
 public record CreateChapterRequest(
     string Title, string? Description, int Order, DateTime? AvailableFrom);

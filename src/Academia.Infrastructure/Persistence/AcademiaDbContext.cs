@@ -30,6 +30,10 @@ public class AcademiaDbContext : DbContext, IApplicationDbContext
     public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
     public DbSet<PointTransaction> PointTransactions => Set<PointTransaction>();
     public DbSet<UserStreak> UserStreaks => Set<UserStreak>();
+    public DbSet<CourseVersion> CourseVersions => Set<CourseVersion>();
+    public DbSet<LessonVersion> LessonVersions => Set<LessonVersion>();
+    public DbSet<EditorialReview> EditorialReviews => Set<EditorialReview>();
+    public DbSet<ReorderAudit> ReorderAudits => Set<ReorderAudit>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

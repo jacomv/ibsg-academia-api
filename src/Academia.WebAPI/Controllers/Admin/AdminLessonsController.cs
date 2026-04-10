@@ -1,6 +1,9 @@
 using Academia.Application.Lessons.Commands.CreateLesson;
 using Academia.Application.Lessons.Commands.DeleteLesson;
+using Academia.Application.Lessons.Commands.ReorderLessons;
 using Academia.Application.Lessons.Commands.UpdateLesson;
+using Academia.Application.Lessons.Queries.GetLessonVersions;
+using Academia.Application.Lessons.Queries.ValidateLesson;
 using Academia.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -49,7 +52,31 @@ public class AdminLessonsController : ControllerBase
         await _mediator.Send(new DeleteLessonCommand(id), ct);
         return NoContent();
     }
+
+    [HttpPost("chapters/{chapterId:guid}/lessons/reorder")]
+    public async Task<IActionResult> Reorder(
+        Guid chapterId, [FromBody] LessonReorderRequest request, CancellationToken ct)
+    {
+        await _mediator.Send(new ReorderLessonsCommand(chapterId, request.OrderedIds), ct);
+        return NoContent();
+    }
+
+    [HttpPost("lessons/{id:guid}/validate")]
+    public async Task<IActionResult> Validate(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ValidateLessonQuery(id), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("lessons/{id:guid}/versions")]
+    public async Task<IActionResult> GetVersions(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetLessonVersionsQuery(id), ct);
+        return Ok(result);
+    }
 }
+
+public record LessonReorderRequest(List<Guid> OrderedIds);
 
 public record LessonRequest(
     string Title,

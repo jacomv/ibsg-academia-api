@@ -1,5 +1,6 @@
 using Academia.Application.Common.Exceptions;
 using Academia.Application.Common.Interfaces;
+using Academia.Application.Lessons.Validators;
 using Academia.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,12 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, G
 
         if (!chapterExists)
             throw new NotFoundException("Chapter", request.ChapterId);
+
+        var validation = LessonContentValidator.Validate(
+            request.Type, request.TextContent, request.VideoUrl,
+            request.AudioUrl, request.PdfFile);
+        if (!validation.IsValid)
+            throw new ValidationException(validation.Errors);
 
         var lesson = new Lesson(
             request.ChapterId, request.Title, request.Type,

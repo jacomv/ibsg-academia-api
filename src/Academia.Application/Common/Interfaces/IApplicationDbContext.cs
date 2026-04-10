@@ -26,6 +26,10 @@ public interface IApplicationDbContext
     DbSet<GroupMember> GroupMembers { get; }
     DbSet<PointTransaction> PointTransactions { get; }
     DbSet<UserStreak> UserStreaks { get; }
+    DbSet<CourseVersion> CourseVersions { get; }
+    DbSet<LessonVersion> LessonVersions { get; }
+    DbSet<EditorialReview> EditorialReviews { get; }
+    DbSet<ReorderAudit> ReorderAudits { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

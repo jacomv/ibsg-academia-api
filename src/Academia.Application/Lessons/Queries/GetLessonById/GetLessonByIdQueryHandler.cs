@@ -36,11 +36,13 @@ public class GetLessonByIdQueryHandler : IRequestHandler<GetLessonByIdQuery, Les
 
         var (isLocked, lockReason) = await EvaluateAccessAsync(lesson, cancellationToken);
 
-        // Get sibling lessons for prev/next navigation
-        var siblings = lesson.Chapter.Lessons.OrderBy(l => l.Order).ToList();
-        var currentIndex = siblings.FindIndex(l => l.Id == lesson.Id);
-        var previousId = currentIndex > 0 ? siblings[currentIndex - 1].Id : (Guid?)null;
-        var nextId = currentIndex < siblings.Count - 1 ? siblings[currentIndex + 1].Id : (Guid?)null;
+        // Get sibling lessons for prev/next navigation (skip sections)
+        var playable = lesson.Chapter.Lessons
+            .Where(l => l.Type != LessonType.Section)
+            .OrderBy(l => l.Order).ToList();
+        var currentIndex = playable.FindIndex(l => l.Id == lesson.Id);
+        var previousId = currentIndex > 0 ? playable[currentIndex - 1].Id : (Guid?)null;
+        var nextId = currentIndex < playable.Count - 1 ? playable[currentIndex + 1].Id : (Guid?)null;
 
         return new LessonContentDto(
             Id: lesson.Id,
@@ -89,10 +91,12 @@ public class GetLessonByIdQueryHandler : IRequestHandler<GetLessonByIdQuery, Les
         if (lesson.IsLockedByDate)
             return (true, $"This lesson will be available on {lesson.AvailableFrom:MMM dd, yyyy}.");
 
-        // Sequential lock check
+        // Sequential lock check (skip sections)
         if (lesson.RequiresCompletingPrevious)
         {
-            var siblings = lesson.Chapter.Lessons.OrderBy(l => l.Order).ToList();
+            var siblings = lesson.Chapter.Lessons
+                .Where(l => l.Type != LessonType.Section)
+                .OrderBy(l => l.Order).ToList();
             var index = siblings.FindIndex(l => l.Id == lesson.Id);
 
             if (index > 0)
