@@ -22,22 +22,27 @@ public class GetLessonByIdQueryHandler : IRequestHandler<GetLessonByIdQuery, Les
     public async Task<LessonContentDto> Handle(
         GetLessonByIdQuery request, CancellationToken cancellationToken)
     {
-        // Load lesson with full context needed for access checks
+        // Load lesson and parent context without cyclic includes
         var lesson = await _context.Lessons
             .Include(l => l.Chapter)
                 .ThenInclude(ch => ch.Course)
-            .Include(l => l.Chapter)
-                .ThenInclude(ch => ch.Lessons.OrderBy(x => x.Order))
             .AsNoTracking()
             .FirstOrDefaultAsync(l => l.Id == request.LessonId, cancellationToken);
 
         if (lesson is null)
             throw new NotFoundException("Lesson", request.LessonId);
 
-        var (isLocked, lockReason) = await EvaluateAccessAsync(lesson, cancellationToken);
+        // Load sibling lessons in a separate query to avoid EF no-tracking cycle errors.
+        var siblings = await _context.Lessons
+            .Where(l => l.ChapterId == lesson.ChapterId)
+            .OrderBy(l => l.Order)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var (isLocked, lockReason) = await EvaluateAccessAsync(lesson, siblings, cancellationToken);
 
         // Get sibling lessons for prev/next navigation (skip sections)
-        var playable = lesson.Chapter.Lessons
+        var playable = siblings
             .Where(l => l.Type != LessonType.Section)
             .OrderBy(l => l.Order).ToList();
         var currentIndex = playable.FindIndex(l => l.Id == lesson.Id);
@@ -75,7 +80,9 @@ public class GetLessonByIdQueryHandler : IRequestHandler<GetLessonByIdQuery, Les
     }
 
     private async Task<(bool IsLocked, string? Reason)> EvaluateAccessAsync(
-        Domain.Entities.Lesson lesson, CancellationToken ct)
+        Domain.Entities.Lesson lesson,
+        List<Domain.Entities.Lesson> siblings,
+        CancellationToken ct)
     {
         var course = lesson.Chapter.Course;
 
@@ -107,14 +114,15 @@ public class GetLessonByIdQueryHandler : IRequestHandler<GetLessonByIdQuery, Les
         // Sequential lock check (skip sections)
         if (lesson.RequiresCompletingPrevious)
         {
-            var siblings = lesson.Chapter.Lessons
+            var playableSiblings = siblings
                 .Where(l => l.Type != LessonType.Section)
-                .OrderBy(l => l.Order).ToList();
-            var index = siblings.FindIndex(l => l.Id == lesson.Id);
+                .OrderBy(l => l.Order)
+                .ToList();
+            var index = playableSiblings.FindIndex(l => l.Id == lesson.Id);
 
             if (index > 0)
             {
-                var previousLesson = siblings[index - 1];
+                var previousLesson = playableSiblings[index - 1];
                 var previousCompleted = await _context.UserProgress
                     .AnyAsync(p =>
                         p.UserId == _currentUser.Id &&
